@@ -1,0 +1,25 @@
+
+from flask import Flask, request, jsonify
+import joblib
+import cv2
+import numpy as np
+
+app = Flask(__name__)
+model = joblib.load('model.pkl')
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    file = request.files['image']
+    img = cv2.imdecode(np.frombuffer(file.read(), np.uint8), cv2.IMREAD_COLOR)
+    
+    # Preprocess the image (resize, normalize, etc.)
+    img_resized = cv2.resize(img, (128, 128))  # Example size
+    img_flatten = img_resized.flatten().reshape(1, -1)
+
+    # Predict
+    prediction = model.predict(img_flatten)
+    
+    return jsonify({'prediction': str(prediction)})
+
+if __name__ == '__main__':
+    app.run(debug=True)
